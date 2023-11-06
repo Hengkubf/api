@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model Employee {
+  id      Int         @id @default(autoincrement())
+  fname   String
+  phone   String
+  Login   Login[]
+  Note    Note[]
+  Time    stampTime[]
+  Invoice Invoice[]
+  line    line[]
+
+  @@map(name: "Employee")
+}
+
+model Login {
+  id          Int      @id @default(autoincrement())
+  employee_id Int
+  username    String   @unique
+  password    String
+  level       Int
+  status      Int
+  Employee    Employee @relation(fields: [employee_id], references: [id])
+
+  @@map(name: "Login")
+}
+
+model Product {
+  id            Int             @id @default(autoincrement())
+  barcode       String          @unique
+  type          String
+  name          String
+  cost          Int
+  sale          Int
+  quan          Int
+  line          line[]
+  ReturnProduct ReturnProduct[]
+
+  @@map(name: "Product")
+}
+
+model ReturnProduct {
+  id         Int     @id @default(autoincrement())
+  inv_id     Int
+  product_id Int
+  quan       Int
+  status     Int
+  Invoice    Invoice @relation(fields: [inv_id], references: [id])
+  Product    Product @relation(fields: [product_id], references: [id])
+
+  @@map(name: "Return_Product")
+}
+
+model Note {
+  id          Int      @id @default(autoincrement())
+  employee_id Int
+  type        Int
+  value       Int
+  text        String
+  Date        DateTime
+  Employee    Employee @relation(fields: [employee_id], references: [id])
+
+  @@map(name: "Note")
+}
+
+model stampTime {
+  id          Int      @id @default(autoincrement())
+  employee_id Int
+  Type        Int
+  Time        DateTime
+  Employee    Employee @relation(fields: [employee_id], references: [id])
+
+  @@map(name: "Time")
+}
+
+model Invoice {
+  id            Int             @id @default(autoincrement())
+  Date          DateTime
+  employee_id   Int
+  total         Float
+  Employee      Employee        @relation(fields: [employee_id], references: [id])
+  line          line[]
+  ReturnProduct ReturnProduct[]
+
+  @@map(name: "Invoice")
+}
+
+model line {
+  id         Int      @id @default(autoincrement())
+  inv_id     Int      
+  barcode    String
+  quantity   Int
+  price      Float
+  Invoice    Invoice  @relation(fields: [inv_id], references: [id])
+  Product    Product  @relation(fields: [barcode], references: [barcode])
+  Employee   Employee @relation(fields: [employeeId], references: [id])
+  employeeId Int
+
+  @@map(name: "line")
+}

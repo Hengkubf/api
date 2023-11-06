@@ -1,0 +1,159 @@
+import express from 'express';
+import { PrismaClient } from '@prisma/client';
+import { Request, Response } from 'express';
+const app = express();
+const prisma = new PrismaClient();
+const jwt = require('jsonwebtoken');
+require('dotenv').config()
+
+app.get('/employees', async (req: Request, res: Response) => {
+    try {
+        const employees = await prisma.employee.findMany({
+            include: {
+                Login: true,
+            },
+        });
+        res.status(200).json(employees);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred' });
+    }
+});
+
+app.post('/addemployee', async (req: Request, res: Response) => {
+    try {
+        const data = req.body;
+        const user = await prisma.employee.create({
+            data: {
+                fname: data.fname,
+                phone: data.phone,
+                Login: {
+                    create: {
+                        username: data.username,
+                        level: parseInt(data.level),
+                        password: data.password,
+                        status: 1,
+                    }
+                }
+            },
+        });
+        res.status(201).json(user);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred' });
+    }
+});
+
+app.post('/updateemployee', async (req: Request, res: Response) => {
+    try {
+        const data = req.body;
+        const users = await prisma.employee.update({
+            where: {
+                id: parseInt(data.id),
+            },
+            data: {
+                fname: data.fname,
+                phone: data.phone,
+                Login:
+                {
+                    update: {
+                        where: {
+                            username: data.username,
+                        },
+                        data: {
+                            level: parseInt(data.level),
+                            password: data.password,
+                            status: parseInt(data.status)
+                        },
+                    },
+                }
+            },
+        })
+        res.status(200).json(users);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred' });
+    }
+});
+app.post('/login', async (req: Request, res: Response) => {
+    const { csrfToken, username, password } = req.body;
+    if (!csrfToken || !username || !password) {
+        console.log(req.body);
+        return res.status(400).json({ error: 'Username and password are required' });
+    }
+    const user = await prisma.login.findUnique({
+        where: {
+            username: username,
+        },
+    });
+
+    if (!user || user.password !== password) {
+        return res.status(401).json({ status: 'Invalid username or password' });
+    } else if (user.status !== 1) {
+        return res.status(401).json({ status: 'Account not active' });
+    }
+    const employeeinfo = await prisma.employee.findUnique({
+        where: {
+            id: user.id,
+        }, include: {
+            Login: {
+                select: {
+                    username: true,
+                    status: true,
+                    level: true,
+                }
+            },
+        }
+    })
+    return res.status(200).json({ status: 'ok', user: employeeinfo });
+});
+
+app.post('/stampTime', async (req, res) => {
+    try {
+        const { employee_id, Type, Time } = req.body;
+        const result = await prisma.stampTime.create({
+            data: {
+                employee_id,
+                Type,
+                Time,
+            },
+        });
+        res.json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while creating the stampTime record.' });
+    }
+});
+
+app.get('/getstampTime', async (req: Request, res: Response) => {
+    const results = await prisma.stampTime.findMany({
+    });
+    res.status(200).json(results);
+});
+
+
+app.post('/addNotes', (async (req, res) => {
+    const { employee_id, type, value, text } = req.body;
+
+    const newNote = await prisma.note.create({
+        data: {
+            employee_id: parseInt(employee_id), // แปลงเป็น Int
+            type: parseInt(type), // แปลงเป็น Int
+            value: parseInt(value), // แปลงเป็น Int
+            text,
+            Date: new Date(), // เพิ่ม current date
+        },
+    });
+
+    res.json(newNote);
+}));
+
+
+app.get('/getNotes', async (req: Request, res: Response) => {
+
+    const results = await prisma.note.findMany({
+    });
+    res.status(200).json(results);
+});
+
+module.exports = app;
