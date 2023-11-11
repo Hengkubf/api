@@ -48,13 +48,13 @@ model Product {
 }
 
 model ReturnProduct {
-  id         Int     @id @default(autoincrement())
-  inv_id     Int
-  product_id Int
-  quan       Int
-  status     Int
-  Invoice    Invoice @relation(fields: [inv_id], references: [id])
-  Product    Product @relation(fields: [product_id], references: [id])
+  id              Int     @id @default(autoincrement())
+  inv_id          Int
+  product_barcode String
+  quan            Int
+  status          Int
+  Invoice         Invoice @relation(fields: [inv_id], references: [id])
+  Product         Product @relation(fields: [product_barcode], references: [barcode])
 
   @@map(name: "Return_Product")
 }

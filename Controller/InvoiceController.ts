@@ -141,26 +141,127 @@ app.get('/getInvoice/new', async (req: Request, res: Response) => {
     res.status(200).json(results[0]); // เนื่องจาก take: 1 จะได้รายการเดียวเท่านั้น
 });
 
-
 app.get('/getReturnInvoice/', async (req: Request, res: Response) => {
-    const invoice_id = req.body.id;
-    const barcode = req.body.barcode;
-    const results = await prisma.invoice.findUnique({
-        where: {
-            id: parseInt(invoice_id),
-        },
-        include: {
-            line: {
-                where: {
-                    barcode: barcode,
-                }
-            }
-        },
-    });
+    const invoice_id = req.query.id as string;
+    const barcode = req.query.barcode as string;
 
-    res.status(200).json(results?.line);
+    try {
+        const results = await prisma.line.findFirst({
+            where: {
+                inv_id: parseInt(invoice_id),
+                barcode: barcode,
+            },
+        });
 
+        if (!results) {
+            res.status(500).json({ status: "Data not Matches" });
+        } else {
+            res.status(200).json({ status: "ok", quantity: results.quantity });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: "Fail" });
+    }
 });
+
+app.post('/updateNote', async (req: Request, res: Response) => {
+    try {
+        const data = req.body;
+        const products = await prisma.note.update({
+            where: {
+                id: parseInt(data.code),
+            },
+            data: {
+                type: parseInt(data.type),
+                value: parseInt(data.expense),
+                text: data.note,
+            },
+        });
+        res.status(201).json(products);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while creating the user.' });
+    }
+});
+
+
+
+app.post('/updateQtyReturnProduct', async (req: Request, res: Response) => {
+    try {
+        const data = req.body;
+        const barcode = String(data.product.barcode);
+        const quantityToDeduct = parseInt(data.product.quantity);
+        const product = await prisma.product.findUnique({
+            where: {
+                barcode: barcode
+            }
+        });
+
+        if (!product) {
+            res.status(500).json({ message: 'No Product' });
+        } else {
+            const currentQuantity = product.quan;
+            const newQuantity = currentQuantity - quantityToDeduct;
+            if (newQuantity >= 0) {
+                await prisma.product.update({
+                    where: {
+                        barcode: barcode
+                    },
+                    data: {
+                        quan: newQuantity
+                    }
+                });
+                res.status(201).json({ message: 'Product quantities updated successfully' });
+            } else {
+                res.status(500).json({ error: 'Error quantity of product.' });
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while updating product quantities.' });
+    }
+});
+
+
+app.post('/createReturn', async (req: Request, res: Response) => {
+    try {
+        const data = req.body.product;
+        const returnProduct = await prisma.returnProduct.create({
+            data: {
+                inv_id: parseInt(data.id),
+                product_barcode: data.code,
+                quan: data.quan,
+                status: 1,
+            },
+        });
+        res.status(201).json(returnProduct);
+    } catch (error) {
+        console.error(error);
+        const data = req.body.product;
+
+        res.status(500).json({ error: 'An error occurred while creating the user.', result: data });
+    }
+});
+
+app.get('/getReportReturn', async (req: Request, res: Response) => {
+    const results = await prisma.returnProduct.findMany({
+
+    });
+    res.status(200).json(results);
+});
+
+app.delete('/DeleteReturn', async (req: Request, res: Response) => {
+    const data = req.body;
+    const results = await prisma.returnProduct.delete({
+        where: {
+            id: data.id
+        }
+    });
+    res.status(200).json(results);
+});
+
+
+
 
 module.exports = app;
 
