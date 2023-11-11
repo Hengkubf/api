@@ -95,10 +95,11 @@ model Invoice {
 
 model line {
   id         Int      @id @default(autoincrement())
-  inv_id     Int      
+  inv_id     Int
   barcode    String
   quantity   Int
   price      Float
+  cost       Float
   Invoice    Invoice  @relation(fields: [inv_id], references: [id])
   Product    Product  @relation(fields: [barcode], references: [barcode])
   Employee   Employee @relation(fields: [employeeId], references: [id])

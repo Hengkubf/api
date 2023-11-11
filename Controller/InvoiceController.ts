@@ -22,7 +22,6 @@ app.post('/invoices', async (req, res) => {
     try {
         const data = req.body;
 
-        // สร้าง Invoice ใหม่
         const currentDate = new Date();
         const invoice = await prisma.invoice.create({
             data: {
@@ -39,12 +38,13 @@ app.post('/invoices', async (req, res) => {
                     inv_id: invoice.id, // ใช้ ID ของ Invoice ที่สร้าง
                     barcode: productData.product.barcode, // ใช้ Barcode ของสินค้าจากคำขอ
                     quantity: productData.product.quantity, // ใช้จำนวนสินค้าจากคำขอ
+                    cost: productData.product.cost,
                     price: productData.product.price, // ใช้ราคาของสินค้าจากคำขอ
                     employeeId: data.Userid, // ใช้ Userid จากคำขอ
                 }
             });
         }
-        res.status(201).json({ message: 'Invoice created successfully' });
+        res.status(201).json({ message: 'Invoice created successfully', invoiceId: invoice.id });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error creating invoice' });
@@ -94,7 +94,6 @@ app.post('/updateQtyProduct', async (req: Request, res: Response) => {
 
 
 app.get('/getInvoice', async (req: Request, res: Response) => {
-
     const results = await prisma.invoice.findMany({
         include: {
             line: {
@@ -124,15 +123,9 @@ app.get('/invoice/sumemployee', async (req, res) => {
     }
 });
 
+app.get('/getInvoice/new', async (req: Request, res: Response) => {
 
-
-app.get('/getInvoice/:id', async (req: Request, res: Response) => {
-
-    const invoice_id = req.params.id;
-    const results = await prisma.invoice.findUnique({
-        where: {
-            id: parseInt(invoice_id),
-        },
+    const results = await prisma.invoice.findMany({
         include: {
             line: {
                 include: {
@@ -140,12 +133,34 @@ app.get('/getInvoice/:id', async (req: Request, res: Response) => {
                 }
             }
         },
+        orderBy: {
+            id: 'desc'
+        },
+        take: 1
     });
-    res.status(200).json(results);
+    res.status(200).json(results[0]); // เนื่องจาก take: 1 จะได้รายการเดียวเท่านั้น
 });
 
 
+app.get('/getReturnInvoice/', async (req: Request, res: Response) => {
+    const invoice_id = req.body.id;
+    const barcode = req.body.barcode;
+    const results = await prisma.invoice.findUnique({
+        where: {
+            id: parseInt(invoice_id),
+        },
+        include: {
+            line: {
+                where: {
+                    barcode: barcode,
+                }
+            }
+        },
+    });
 
+    res.status(200).json(results?.line);
+
+});
 
 module.exports = app;
 

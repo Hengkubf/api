@@ -71,4 +71,6 @@ app.get('/getProduct/:barcode', async (req: Request, res: Response) => {
     }
 });
 
+
+
 module.exports = app;
