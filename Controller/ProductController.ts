@@ -73,4 +73,65 @@ app.get('/getProduct/:barcode', async (req: Request, res: Response) => {
 
 
 
+app.post('/updateReturnProduct', async (req: Request, res: Response) => {
+
+    try {
+        const data = req.body;
+        let products;
+        products = await prisma.returnProduct.update({
+            where: {
+                id: parseInt(data.code),
+            },
+            data: {
+                status: parseInt(data.status),
+                quan: parseInt(data.quan),
+            },
+        });
+        if (parseInt(data.status) === 3) {
+            try {
+                const barcode = String(data.productid);
+                const quantityToDeduct = parseInt(data.quan);
+                const product = await prisma.product.findUnique({
+                    where: {
+                        barcode: barcode
+                    }
+                });
+
+                if (!product) {
+                    return res.status(500).json({ message: 'No Product' });
+                }
+
+                const currentQuantity = product.quan;
+                const newQuantity = currentQuantity + quantityToDeduct;
+
+                if (newQuantity < 0) {
+                    return res.status(500).json({ error: 'Error quantity of product.' });
+                }
+
+                await prisma.product.update({
+                    where: {
+                        barcode: barcode
+                    },
+                    data: {
+                        quan: newQuantity
+                    }
+                });
+
+                return res.status(201).json({ message: 'Product quantities updated successfully' });
+            } catch (error) {
+                return res.status(500).json({ error: 'An error occurred while updating product quantities.' });
+            }
+        }
+
+
+
+        return res.status(201).json(products);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'An error occurred while creating the user.' });
+    }
+});
+
+
+
 module.exports = app;
