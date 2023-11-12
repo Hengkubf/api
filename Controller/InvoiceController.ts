@@ -98,7 +98,7 @@ app.get('/getInvoice', async (req: Request, res: Response) => {
         include: {
             line: {
                 include: {
-                    Product: true // รวมข้อมูล Product
+                    Product: true
                 }
             }
         },

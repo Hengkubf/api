@@ -31,13 +31,87 @@ app.post('/createProduct', async (req: Request, res: Response) => {
 });
 
 app.get('/topSellProduct', async (req: Request, res: Response) => {
-    const results = await prisma.product.findMany({
-        orderBy: {
-            sale: 'desc',
-        },
-        take: 10,
-    });
-    res.status(200).json(results);
+    const { period } = req.query; // get the period query parameter from the URL
+    let results;
+
+    switch (period) {
+        case 'today':
+            results = await prisma.invoice.findMany({
+                where: {
+                    Date: {
+                        gte: new Date(new Date().setHours(0, 0, 0, 0)), // get the invoices from today
+                    },
+                },
+                include: {
+                    line: {
+                        include: {
+                            Product: true,
+                        },
+                    },
+                },
+            });
+            break;
+        case 'monthly':
+            results = await prisma.invoice.findMany({
+                where: {
+                    Date: {
+                        gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1), // get the invoices from the beginning of the month
+                    },
+                },
+                include: {
+                    line: {
+                        include: {
+                            Product: true,
+                        },
+                    },
+                },
+            });
+            break;
+        case 'yearly':
+            results = await prisma.invoice.findMany({
+                where: {
+                    Date: {
+                        gte: new Date(new Date().getFullYear(), 0, 1), // get the invoices from the beginning of the year
+                    },
+                },
+                include: {
+                    line: {
+                        include: {
+                            Product: true,
+                        },
+                    },
+                },
+            });
+            break;
+        default:
+            results = await prisma.invoice.findMany({
+                orderBy: {
+                    Date: 'desc',
+                },
+                include: {
+                    line: {
+                        include: {
+                            Product: true,
+                        },
+                    },
+                },
+            });
+            break;
+    }
+    const p = {} as Record<string, {id: number, total: number, name:string}>;
+  results.map((invoice) => {
+
+        invoice.line.forEach((line) => {
+            p[line.Product.id] ||= {
+                id: line.Product.id,
+                total: 0,
+                name: line.Product.name
+            }
+            p[line.Product.id].total += line.quantity
+        });
+    })
+
+    res.status(200).json(Object.values(p));
 });
 app.post('/updateProduct', async (req: Request, res: Response) => {
     try {
