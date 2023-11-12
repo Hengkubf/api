@@ -29,6 +29,16 @@ app.post('/createProduct', async (req: Request, res: Response) => {
         res.status(500).json({ error: 'An error occurred while creating the user.' });
     }
 });
+
+app.get('/topSellProduct', async (req: Request, res: Response) => {
+    const results = await prisma.product.findMany({
+        orderBy: {
+            sale: 'desc',
+        },
+        take: 10,
+    });
+    res.status(200).json(results);
+});
 app.post('/updateProduct', async (req: Request, res: Response) => {
     try {
         const data = req.body;
