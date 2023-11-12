@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
+
 var express = require('express');
 var cors = require('cors');
 var app = express();
-var port = 3001
 var bodyParser = require('body-parser');
 
 
@@ -19,6 +19,6 @@ app.use(require('./Controller/DashboardController'));
 
 
 
-app.listen(port, () => {
-    console.log('Example app listening on port', port);
+app.listen(process.env.PORT, () => {
+    console.log('Example app listening on port', process.env.PORT);
 })
