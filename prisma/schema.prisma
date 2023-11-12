@@ -9,12 +9,11 @@ datasource db {
 }
 
 model Employee {
-  id      Int         @id @default(autoincrement())
+  id      Int       @id @default(autoincrement())
   fname   String
   phone   String
   Login   Login[]
   Note    Note[]
-  Time    stampTime[]
   Invoice Invoice[]
   line    line[]
 
@@ -73,16 +72,6 @@ model Note {
   @@map(name: "Note")
 }
 
-model stampTime {
-  id          Int      @id @default(autoincrement())
-  employee_id Int
-  Type        Int
-  Time        DateTime
-  Employee    Employee @relation(fields: [employee_id], references: [id])
-
-  @@map(name: "Time")
-}
-
 model Invoice {
   id            Int             @id @default(autoincrement())
   Date          DateTime
@@ -102,6 +91,7 @@ model line {
   quantity   Int
   price      Float
   cost       Float
+  createdAt  DateTime @default(now())
   Invoice    Invoice  @relation(fields: [inv_id], references: [id])
   Product    Product  @relation(fields: [barcode], references: [barcode])
   Employee   Employee @relation(fields: [employeeId], references: [id])

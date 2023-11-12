@@ -108,28 +108,8 @@ app.post('/login', async (req: Request, res: Response) => {
     return res.status(200).json({ status: 'ok', user: employeeinfo });
 });
 
-app.post('/stampTime', async (req, res) => {
-    try {
-        const { employee_id, Type, Time } = req.body;
-        const result = await prisma.stampTime.create({
-            data: {
-                employee_id,
-                Type,
-                Time,
-            },
-        });
-        res.json(result);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'An error occurred while creating the stampTime record.' });
-    }
-});
 
-app.get('/getstampTime', async (req: Request, res: Response) => {
-    const results = await prisma.stampTime.findMany({
-    });
-    res.status(200).json(results);
-});
+
 
 
 app.post('/addNotes', (async (req, res) => {

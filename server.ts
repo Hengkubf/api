@@ -14,6 +14,10 @@ app.use(bodyParser.json());
 app.use(require('./Controller/UserController'));
 app.use(require('./Controller/ProductController'));
 app.use(require('./Controller/InvoiceController'));
+app.use(require('./Controller/DashboardController'));
+
+
+
 
 app.listen(port, () => {
     console.log('Example app listening on port', port);
