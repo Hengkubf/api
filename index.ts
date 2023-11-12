@@ -1,5 +1,3 @@
-import { Request, Response, NextFunction } from "express";
-
 var express = require('express');
 var cors = require('cors');
 var app = express();
