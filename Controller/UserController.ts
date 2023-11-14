@@ -108,6 +108,7 @@ app.post('/login', async (req: Request, res: Response) => {
     if (employeeinfo) {
         const responseObject = {
             userid: user.id,
+            fname: employeeinfo.fname,
             username: employeeinfo.Login[0].username,
             level: employeeinfo.Login[0].level,
             status: employeeinfo.Login[0].status,
