@@ -22,45 +22,45 @@ app.get('/dashboard/salebyCateagory', async (req, res) => {
     }
 });
 
-// app.get('/dashboard/Summary', async (req, res) => {
-//     try {
-//         const resultProduct = await prisma.$queryRaw`
-//         SELECT DATE(createdAt) AS sale_date,
-//         SUM(quantity * price) AS Total_Product,
-//         SUM((quantity * price) - (quantity * cost)) AS total_profit,
-//         SUM(quantity * cost) AS Total_costFromProduct
-//         FROM line GROUP BY DATE(createdAt)`;
+app.get('/dashboard/Summary', async (req, res) => {
+    try {
+        const resultProduct = await prisma.$queryRaw`
+        SELECT DATE(createdAt) AS sale_date,
+        SUM(quantity * price) AS Total_Product,
+        SUM((quantity * price) - (quantity * cost)) AS total_profit,
+        SUM(quantity * cost) AS Total_costFromProduct
+        FROM line GROUP BY DATE(createdAt)`;
 
-//         res.json(resultProduct);
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ error: 'An error occurred while fetching data.' });
-//     }
-// });
-
-
-
-
-// app.get('/expenses', async (req, res) => {
-
-//     try {
-//         const expenses = await prisma.$queryRaw`SELECT DATE(Date) AS formattedDate, SUM(value) AS totalExpense FROM Note GROUP BY formattedDate`;
-
-//         const resultProduct = await prisma.$queryRaw`
-//         SELECT DATE(createdAt) AS sale_date,
-//         SUM(quantity * price) AS Total_Product,
-//         SUM((quantity * price) - (quantity * cost)) AS total_profit,
-//         SUM(quantity * cost) AS Total_costFromProduct
-//         FROM line GROUP BY DATE(createdAt)`;
+        res.json(resultProduct);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while fetching data.' });
+    }
+});
 
 
 
-//         res.json({ expenses: expenses, result: resultProduct });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ error: 'An error occurred while fetching data.' });
-//     }
-// });
+
+app.get('/expenses', async (req, res) => {
+
+    try {
+        const expenses = await prisma.$queryRaw`SELECT DATE(Date) AS formattedDate, SUM(value) AS totalExpense FROM Note GROUP BY formattedDate`;
+
+        const resultProduct = await prisma.$queryRaw`
+        SELECT DATE(createdAt) AS sale_date,
+        SUM(quantity * price) AS Total_Product,
+        SUM((quantity * price) - (quantity * cost)) AS total_profit,
+        SUM(quantity * cost) AS Total_costFromProduct
+        FROM line GROUP BY DATE(createdAt)`;
+
+
+
+        res.json({ expenses: expenses, result: resultProduct });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while fetching data.' });
+    }
+});
 
 
 interface Expense {

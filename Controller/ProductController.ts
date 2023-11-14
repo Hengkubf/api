@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Prisma, PrismaClient } from "@prisma/client";
+import { type } from "os";
 const express = require('express')
 const app = express()
 const prisma = new PrismaClient();
@@ -98,20 +99,41 @@ app.get('/topSellProduct', async (req: Request, res: Response) => {
             });
             break;
     }
-    const p = {} as Record<string, {id: number, total: number, name:string}>;
-  results.map((invoice) => {
-
+    const p = {} as Record<string, {id: number, qta: number, total: number, name:string, type: string}>;
+    results.map((invoice) => {
         invoice.line.forEach((line) => {
             p[line.Product.id] ||= {
                 id: line.Product.id,
-                total: 0,
-                name: line.Product.name
+                qta: 0,
+                name: line.Product.name,
+                type: line.Product.type,
+                total: 0
             }
-            p[line.Product.id].total += line.quantity
+            p[line.Product.id].qta += line.quantity
+            p[line.Product.id].total += line.cost
+
         });
     })
 
     res.status(200).json(Object.values(p));
+});
+
+app.get('/recentOrder', async (req: Request, res: Response) => {
+   const result = await prisma.invoice.findMany
+    ({
+         orderBy: {
+              Date: 'desc',
+         },
+         include: {
+              line: {
+                include: {
+                     Product: true,
+                },
+              },
+         },
+            take: 5
+    });
+    res.status(200).json(result);
 });
 app.post('/updateProduct', async (req: Request, res: Response) => {
     try {
