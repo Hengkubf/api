@@ -105,9 +105,18 @@ app.post('/login', async (req: Request, res: Response) => {
             },
         }
     })
-    return res.status(200).json({ status: 'ok', user: employeeinfo });
+    if (employeeinfo) {
+        const responseObject = {
+            userid: user.id,
+            username: employeeinfo.Login[0].username,
+            level: employeeinfo.Login[0].level,
+            status: employeeinfo.Login[0].status,
+        };
+        return res.status(200).json({ status: 'ok', user: responseObject });
+    } else {
+        return res.status(500).json({ status: 'fail' });
+    }
 });
-
 
 
 
