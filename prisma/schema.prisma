@@ -90,6 +90,7 @@ model line {
   barcode    String
   quantity   Int
   price      Float
+  discount   Float
   cost       Float
   createdAt  DateTime @default(now())
   Invoice    Invoice  @relation(fields: [inv_id], references: [id])
