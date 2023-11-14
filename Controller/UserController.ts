@@ -13,7 +13,16 @@ app.get('/employees', async (req: Request, res: Response) => {
                 Login: true,
             },
         });
-        res.status(200).json(employees);
+        const formattedEmployees = employees.map((employee) => ({
+            id: employee.id,
+            fname: employee.fname,
+            phone: employee.phone,
+            username: employee.Login[0].username,
+            password: employee.Login[0].password, // Update this if you need to handle passwords differently
+            level: (employee.Login[0].level),
+            status: (employee.Login[0].status),
+        }));
+        res.status(200).json(formattedEmployees);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'An error occurred' });
