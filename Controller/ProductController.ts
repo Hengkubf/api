@@ -118,6 +118,8 @@ app.get('/topSellProduct', async (req: Request, res: Response) => {
     res.status(200).json(Object.values(p));
 });
 
+
+
 app.get('/recentOrder', async (req: Request, res: Response) => {
    const result = await prisma.invoice.findMany
     ({
