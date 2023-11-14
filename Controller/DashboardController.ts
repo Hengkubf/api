@@ -22,13 +22,14 @@ app.get('/dashboard/salebyCateagory', async (req, res) => {
     }
 });
 
-app.get('/dashboard/Summary', async (req, res) => {
+app.get('/dashboard/Summary', async (req: Request, res: Response) => {
     try {
         const resultProduct = await prisma.$queryRaw`
         SELECT DATE(createdAt) AS sale_date,
         SUM(quantity * price) AS Total_Product,
-        SUM((quantity * price) - (quantity * cost)) AS total_profit,
+        SUM((quantity * price) - (quantity * cost)-(quantity*discount)) AS total_profit,
         SUM(quantity * cost) AS Total_costFromProduct
+        SUM(quantity*discount) AS Total_Discount
         FROM line GROUP BY DATE(createdAt)`;
 
         res.json(resultProduct);
@@ -41,7 +42,7 @@ app.get('/dashboard/Summary', async (req, res) => {
 
 
 
-app.get('/expenses', async (req, res) => {
+app.get('/expenses', async (req: Request, res: Response) => {
 
     try {
         const expenses = await prisma.$queryRaw`SELECT DATE(Date) AS formattedDate, SUM(value) AS totalExpense FROM Note GROUP BY formattedDate`;
@@ -82,22 +83,20 @@ app.get('/dashboard/expensesAll', async (req, res) => {
         const expenses: Expense[] = await prisma.$queryRaw`
         SELECT DATE(Date) AS formattedDate, SUM(value) AS totalExpense
         FROM Note
-        GROUP BY formattedDate
-      `;
+        GROUP BY formattedDate`;
 
         const productStats: ProductStat[] = await prisma.$queryRaw`
-        SELECT DATE(createdAt) AS saleDate,
-          SUM(quantity * price) AS totalProduct,
-          SUM((quantity * price) - (quantity * cost)) AS totalProfit,
-          SUM(quantity * cost) AS totalCostFromProduct
-        FROM line
-        GROUP BY saleDate
+        SELECT  DATE(createdAt) AS saleDate,
+        SUM(quantity * price) AS totalProduct,
+        SUM((quantity * price) - (quantity * discount) - (quantity * cost)) AS totalProfit,
+        SUM(quantity * cost) AS totalCostFromProduct,
+        SUM(quantity * discount) AS totalDiscountFromProduct
+        FROM    line    GROUP BY saleDate
       `;
 
         // Merge the two data sets based on the date
         const mergedData = expenses.map((expense) => {
             const matchingProductStat = productStats.find((stat) => new Date(stat.saleDate).toLocaleDateString('en-US') === new Date(expense.formattedDate).toLocaleDateString('en-US'));
-
             return {
                 Date: new Date(expense.formattedDate).toLocaleDateString('th-TH'),
                 ExpenseFormNote: expense.totalExpense || 0,

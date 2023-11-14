@@ -40,7 +40,8 @@ app.post('/invoices', async (req, res) => {
                     quantity: productData.product.quantity, // ใช้จำนวนสินค้าจากคำขอ
                     cost: productData.product.cost,
                     price: productData.product.price, // ใช้ราคาของสินค้าจากคำขอ
-                    employeeId: data.Userid, // ใช้ Userid จากคำขอ
+                    employeeId: data.Userid,
+                    discount: parseFloat(productData.product.discount),
                 }
             });
         }
