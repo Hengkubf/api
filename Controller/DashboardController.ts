@@ -42,26 +42,71 @@ app.get('/dashboard/Summary', async (req: Request, res: Response) => {
 
 
 
+// app.get('/expenses', async (req: Request, res: Response) => {
+
+//     try {
+//         const expenses: Expense[] = await prisma.$queryRaw`SELECT DATE(Date) AS formattedDate, SUM(value) AS totalExpense FROM Note GROUP BY formattedDate`;
+
+//         const Notesumary = await prisma.$queryRaw`
+//         SELECT DATE(Note.Date) AS formattedDate, SUM(Note.value) AS totalExpense
+//         FROM Note GROUP BY formattedDate`;
+
+
+//         const productStats: ProductStat[] = await prisma.$queryRaw`
+//         SELECT DATE(createdAt) AS date,
+//         SUM(quantity * price) AS Total_Product,
+//         SUM((quantity * price) - (quantity * cost)-(quantity*discount)) AS total_profit,
+//         SUM(quantity * cost) AS Total_costFromProduct,
+//         SUM(quantity * discount) AS Total_Discount
+//         FROM line GROUP BY date`;
+
+
+//         console.log(productStats)
+//         console.log(Notesumary)
+//         res.json({ note: Notesumary, product: productStats });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ error: 'An error occurred while fetching data.' });
+//     }
+// });
 app.get('/expenses', async (req: Request, res: Response) => {
 
     try {
-        const expenses = await prisma.$queryRaw`SELECT DATE(Date) AS formattedDate, SUM(value) AS totalExpense FROM Note GROUP BY formattedDate`;
-
-        const resultProduct = await prisma.$queryRaw`
-        SELECT DATE(createdAt) AS sale_date,
+        const productStats: ProductStat[] = await prisma.$queryRaw`
+        SELECT DATE_FORMAT(DATE(createdAt), '%Y-%m-%d') AS date,
         SUM(quantity * price) AS Total_Product,
-        SUM((quantity * price) - (quantity * cost)) AS total_profit,
-        SUM(quantity * cost) AS Total_costFromProduct
-        FROM line GROUP BY DATE(createdAt)`;
+        SUM((quantity * price) - (quantity * cost) - (quantity * discount)) AS total_profit,
+        SUM(quantity * cost) AS Total_costFromProduct,
+        SUM(quantity * discount) AS Total_Discount
+        FROM line GROUP BY date`;
 
+        const Notesumary = await prisma.$queryRaw`
+        SELECT DATE_FORMAT(DATE(Note.Date), '%Y-%m-%d') AS formattedDate, SUM(Note.value) AS totalExpense
+        FROM Note GROUP BY formattedDate`;
 
+        const productStatsJSON = JSON.parse(JSON.stringify(productStats));
+        const NotesumaryJSON = JSON.parse(JSON.stringify(Notesumary));
 
-        res.json({ expenses: expenses, result: resultProduct });
+        // Merge the arrays based on the date
+        const mergedData = productStatsJSON.map((productItem: any) => {
+            const matchingNote = NotesumaryJSON.find((noteItem: any) => noteItem.formattedDate === productItem.date);
+            return {
+                date: productItem.date,
+                Total_Product: productItem.Total_Product,
+                total_profit: productItem.total_profit,
+                Total_costFromProduct: productItem.Total_costFromProduct,
+                Total_Discount: productItem.Total_Discount,
+                totalExpense: matchingNote ? parseInt(matchingNote.totalExpense) : 0
+            };
+        });
+        res.json({ result: mergedData });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'An error occurred while fetching data.' });
     }
 });
+
+
 
 
 interface Expense {
@@ -82,10 +127,10 @@ app.get('/dashboard/expensesAll', async (req, res) => {
     try {
         // Explicitly define the types for expenses and productStats
         const expenses: Expense[] = await prisma.$queryRaw`
-        SELECT DATE(Date) AS formattedDate, SUM(value) AS totalExpense
+        SELECT DATE(Note.Date) AS formattedDate, SUM(Note.value) AS totalExpense
         FROM Note
         GROUP BY formattedDate`;
-
+        console.log(expenses)
         const productStats: ProductStat[] = await prisma.$queryRaw`
         SELECT DATE(createdAt) AS sale_date,
         SUM(quantity * price) AS Total_Product,
