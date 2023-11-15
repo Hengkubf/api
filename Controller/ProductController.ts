@@ -110,10 +110,9 @@ app.get('/topSellProduct', async (req: Request, res: Response) => {
                 discount: line.discount,
                 total: 0
             }
-            p[line.Product.id].qta += line.discount
+            p[line.Product.id].discount += (line.discount * line.quantity)
             p[line.Product.id].qta += line.quantity
             p[line.Product.id].total += line.price
-
         });
     })
 
