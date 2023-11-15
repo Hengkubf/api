@@ -28,7 +28,7 @@ app.get('/dashboard/Summary', async (req: Request, res: Response) => {
         SELECT DATE(createdAt) AS sale_date,
         SUM(quantity * price) AS Total_Product,
         SUM((quantity * price) - (quantity * cost)-(quantity*discount)) AS total_profit,
-        SUM(quantity * cost) AS Total_costFromProduct
+        SUM(quantity * cost) AS Total_costFromProduct,
         SUM(quantity*discount) AS Total_Discount
         FROM line GROUP BY DATE(createdAt)`;
 
