@@ -74,6 +74,7 @@ interface ProductStat {
     totalProduct: number;
     totalProfit: number;
     totalCostFromProduct: number;
+    totalDiscount: number;
 }
 
 // Use the interfaces in your Express route
@@ -86,12 +87,12 @@ app.get('/dashboard/expensesAll', async (req, res) => {
         GROUP BY formattedDate`;
 
         const productStats: ProductStat[] = await prisma.$queryRaw`
-        SELECT  DATE(createdAt) AS saleDate,
-        SUM(quantity * price) AS totalProduct,
-        SUM((quantity * price) - (quantity * discount) - (quantity * cost)) AS totalProfit,
-        SUM(quantity * cost) AS totalCostFromProduct,
-        SUM(quantity * discount) AS totalDiscountFromProduct
-        FROM    line    GROUP BY saleDate
+        SELECT DATE(createdAt) AS sale_date,
+        SUM(quantity * price) AS Total_Product,
+        SUM((quantity * price) - (quantity * cost)-(quantity*discount)) AS total_profit,
+        SUM(quantity * cost) AS Total_costFromProduct,
+        SUM(quantity * discount) AS Total_Discount
+        FROM line GROUP BY DATE(createdAt)
       `;
 
         // Merge the two data sets based on the date
@@ -103,6 +104,7 @@ app.get('/dashboard/expensesAll', async (req, res) => {
                 CostFromProduct: matchingProductStat ? matchingProductStat.totalCostFromProduct || 0 : 0,
                 productProfit: matchingProductStat ? matchingProductStat.totalProfit || 0 : 0,
                 totalIncome: matchingProductStat ? matchingProductStat.totalProduct || 0 : 0,
+                totalDiscount: matchingProductStat ? matchingProductStat.totalDiscount || 0 : 0,
             };
         });
 
