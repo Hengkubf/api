@@ -9,66 +9,64 @@ require('dotenv').config()
 app.get('/dashboard/salebyCateagory', async (req, res) => {
     try {
         // Execute the SQL query using Prisma
-        const result = await prisma.$queryRaw`
-    SELECT Product.type, DATE(line.createdAt) AS sale_date,
-    SUM(line.quantity) AS total_quantity
-    FROM  line JOIN Product ON line.barcode = Product.barcode
-    GROUP BY Product.type, DATE(line.createdAt)`;
+        const result: { type: string; sale_date: Date; total_quantity: number }[] = await prisma.$queryRaw`
+            SELECT Product.type, DATE(line.createdAt) AS sale_date,
+            SUM(line.quantity) AS total_quantity
+            FROM line
+            JOIN Product ON line.barcode = Product.barcode
+            GROUP BY Product.type, DATE(line.createdAt)`;
 
-        res.json(result);
+        // Process the raw result to create the desired structure
+        const processedResult: Record<string, { type: string; quantity: number }[]> = result.reduce(
+            (acc, entry) => {
+                const date = entry.sale_date.toISOString().split('T')[0];
+
+                if (!acc[date]) {
+                    acc[date] = [];
+                }
+
+                acc[date].push({
+                    type: entry.type,
+                    quantity: entry.total_quantity,
+                });
+
+                return acc;
+            },
+            {} as Record<string, { type: string; quantity: number }[]> // Add an explicit index signature
+        );
+
+        // Fill in missing types with quantity 0
+        const allTypes: string[] = Array.from(
+            new Set(result.map(entry => entry.type))
+        );
+
+        Object.keys(processedResult).forEach(date => {
+            processedResult[date] = allTypes.map(type => {
+                const foundEntry = processedResult[date].find(
+                    entry => entry.type === type
+                );
+                return foundEntry || { type, quantity: 0 };
+            });
+        });
+
+        // Add an object for each date with all types and quantity 0 if not present
+        Object.keys(processedResult).forEach(date => {
+            const existingTypes = processedResult[date].map(entry => entry.type);
+            const missingTypes = allTypes.filter(type => !existingTypes.includes(type));
+
+            processedResult[date].push(...missingTypes.map(type => ({ type, quantity: 0 })));
+        });
+
+        res.json(processedResult);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'An error occurred while fetching data.' });
     }
 });
 
-app.get('/dashboard/Summary', async (req: Request, res: Response) => {
-    try {
-        const resultProduct = await prisma.$queryRaw`
-        SELECT DATE(createdAt) AS sale_date,
-        SUM(quantity * price) AS Total_Product,
-        SUM((quantity * price) - (quantity * cost)-(quantity*discount)) AS total_profit,
-        SUM(quantity * cost) AS Total_costFromProduct,
-        SUM(quantity*discount) AS Total_Discount
-        FROM line GROUP BY DATE(createdAt)`;
-
-        res.json(resultProduct);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'An error occurred while fetching data.' });
-    }
-});
 
 
 
-
-// app.get('/expenses', async (req: Request, res: Response) => {
-
-//     try {
-//         const expenses: Expense[] = await prisma.$queryRaw`SELECT DATE(Date) AS formattedDate, SUM(value) AS totalExpense FROM Note GROUP BY formattedDate`;
-
-//         const Notesumary = await prisma.$queryRaw`
-//         SELECT DATE(Note.Date) AS formattedDate, SUM(Note.value) AS totalExpense
-//         FROM Note GROUP BY formattedDate`;
-
-
-//         const productStats: ProductStat[] = await prisma.$queryRaw`
-//         SELECT DATE(createdAt) AS date,
-//         SUM(quantity * price) AS Total_Product,
-//         SUM((quantity * price) - (quantity * cost)-(quantity*discount)) AS total_profit,
-//         SUM(quantity * cost) AS Total_costFromProduct,
-//         SUM(quantity * discount) AS Total_Discount
-//         FROM line GROUP BY date`;
-
-
-//         console.log(productStats)
-//         console.log(Notesumary)
-//         res.json({ note: Notesumary, product: productStats });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ error: 'An error occurred while fetching data.' });
-//     }
-// });
 app.get('/expenses', async (req: Request, res: Response) => {
 
     try {
@@ -122,43 +120,6 @@ interface ProductStat {
     totalDiscount: number;
 }
 
-// Use the interfaces in your Express route
-app.get('/dashboard/expensesAll', async (req, res) => {
-    try {
-        // Explicitly define the types for expenses and productStats
-        const expenses: Expense[] = await prisma.$queryRaw`
-        SELECT DATE(Note.Date) AS formattedDate, SUM(Note.value) AS totalExpense
-        FROM Note
-        GROUP BY formattedDate`;
-        console.log(expenses)
-        const productStats: ProductStat[] = await prisma.$queryRaw`
-        SELECT DATE(createdAt) AS sale_date,
-        SUM(quantity * price) AS Total_Product,
-        SUM((quantity * price) - (quantity * cost)-(quantity*discount)) AS total_profit,
-        SUM(quantity * cost) AS Total_costFromProduct,
-        SUM(quantity * discount) AS Total_Discount
-        FROM line GROUP BY DATE(createdAt)
-      `;
-
-        // Merge the two data sets based on the date
-        const mergedData = expenses.map((expense) => {
-            const matchingProductStat = productStats.find((stat) => new Date(stat.saleDate).toLocaleDateString('en-US') === new Date(expense.formattedDate).toLocaleDateString('en-US'));
-            return {
-                Date: new Date(expense.formattedDate).toLocaleDateString('th-TH'),
-                ExpenseFormNote: expense.totalExpense || 0,
-                CostFromProduct: matchingProductStat ? matchingProductStat.totalCostFromProduct || 0 : 0,
-                productProfit: matchingProductStat ? matchingProductStat.totalProfit || 0 : 0,
-                totalIncome: matchingProductStat ? matchingProductStat.totalProduct || 0 : 0,
-                totalDiscount: matchingProductStat ? matchingProductStat.totalDiscount || 0 : 0,
-            };
-        });
-
-        res.json(mergedData);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'An error occurred while fetching data.' });
-    }
-});
 
 app.get('/dashboard/getOrder', async (req, res) => {
     try {
