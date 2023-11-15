@@ -99,7 +99,7 @@ app.get('/topSellProduct', async (req: Request, res: Response) => {
             });
             break;
     }
-    const p = {} as Record<string, {id: number, qta: number, total: number, name:string, type: string}>;
+    const p = {} as Record<string, { id: number, qta: number, total: number, name: string, type: string, discount: number }>;
     results.map((invoice) => {
         invoice.line.forEach((line) => {
             p[line.Product.id] ||= {
@@ -107,10 +107,12 @@ app.get('/topSellProduct', async (req: Request, res: Response) => {
                 qta: 0,
                 name: line.Product.name,
                 type: line.Product.type,
+                discount: line.discount,
                 total: 0
             }
+            p[line.Product.id].qta += line.discount
             p[line.Product.id].qta += line.quantity
-            p[line.Product.id].total += line.cost
+            p[line.Product.id].total += line.price
 
         });
     })
@@ -121,20 +123,20 @@ app.get('/topSellProduct', async (req: Request, res: Response) => {
 
 
 app.get('/recentOrder', async (req: Request, res: Response) => {
-   const result = await prisma.invoice.findMany
-    ({
-         orderBy: {
-              Date: 'desc',
-         },
-         include: {
-              line: {
-                include: {
-                     Product: true,
+    const result = await prisma.invoice.findMany
+        ({
+            orderBy: {
+                Date: 'desc',
+            },
+            include: {
+                line: {
+                    include: {
+                        Product: true,
+                    },
                 },
-              },
-         },
+            },
             take: 5
-    });
+        });
     res.status(200).json(result);
 });
 app.post('/updateProduct', async (req: Request, res: Response) => {
