@@ -56,8 +56,14 @@ app.get('/dashboard/salebyCateagory', async (req, res) => {
 
             processedResult[date].push(...missingTypes.map(type => ({ type, quantity: 0 })));
         });
+        const upgradedResult: Record<string, { type: string; quantity: number }[]> = {};
+        Object.keys(processedResult).forEach(date => {
+            upgradedResult[date] = processedResult[date];
+        });
 
-        res.json(processedResult);
+
+
+        res.json(upgradedResult);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'An error occurred while fetching data.' });
