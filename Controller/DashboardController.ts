@@ -20,56 +20,40 @@ app.get('/dashboard/salebyCateagory', async (req, res) => {
         const processedResult: Record<string, { type: string; quantity: number }[]> = result.reduce(
             (acc, entry) => {
                 const date = entry.sale_date.toISOString().split('T')[0];
-
                 if (!acc[date]) {
                     acc[date] = [];
                 }
-
                 acc[date].push({
                     type: entry.type,
                     quantity: entry.total_quantity,
                 });
-
                 return acc;
             },
             {} as Record<string, { type: string; quantity: number }[]> // Add an explicit index signature
         );
 
-        // Fill in missing types with quantity 0
-        const allTypes: string[] = Array.from(
-            new Set(result.map(entry => entry.type))
-        );
+        // Ensure all types are included for each date with quantity 0 if not present
+        const allTypes: string[] = ["1", "2", "3", "4", "5"]; // Add your 5 types here
 
-        Object.keys(processedResult).forEach(date => {
-            processedResult[date] = allTypes.map(type => {
-                const foundEntry = processedResult[date].find(
-                    entry => entry.type === type
-                );
-                return foundEntry || { type, quantity: 0 };
-            });
-        });
-
-        // Add an object for each date with all types and quantity 0 if not present
         Object.keys(processedResult).forEach(date => {
             const existingTypes = processedResult[date].map(entry => entry.type);
             const missingTypes = allTypes.filter(type => !existingTypes.includes(type));
 
             processedResult[date].push(...missingTypes.map(type => ({ type, quantity: 0 })));
         });
-        const upgradedResult: Record<string, { type: string; quantity: number }[]> = {};
-        Object.keys(processedResult).forEach(date => {
-            upgradedResult[date] = processedResult[date];
+
+        // Sort the result by date
+        const sortedResult: Record<string, { type: string; quantity: number }[]> = {};
+        Object.keys(processedResult).sort().forEach(date => {
+            sortedResult[date] = processedResult[date];
         });
 
-
-
-        res.json(upgradedResult);
+        res.json(sortedResult);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'An error occurred while fetching data.' });
     }
 });
-
 
 
 
