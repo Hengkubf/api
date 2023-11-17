@@ -33,7 +33,7 @@ app.get('/dashboard/salebyCateagory', async (req, res) => {
         );
 
         // Ensure all types are included for each date with quantity 0 if not present
-        const allTypes: string[] = ["1", "2", "3", "4", "5"]; // Add your 5 types here
+        const allTypes: string[] = ["1", "2", "3", "4"]; // Add your 5 types here
 
         Object.keys(processedResult).forEach(date => {
             const existingTypes = processedResult[date].map(entry => entry.type);
