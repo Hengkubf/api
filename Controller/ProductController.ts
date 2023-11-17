@@ -99,7 +99,7 @@ app.get('/topSellProduct', async (req: Request, res: Response) => {
             });
             break;
     }
-    const p = {} as Record<string, { id: number, qta: number, total: number, name: string, type: string, discount: number }>;
+    const p = {} as Record<string, { id: number, qta: number, total: number, name: string, type: string, discount: number, cost: number }>;
     results.map((invoice) => {
         invoice.line.forEach((line) => {
             p[line.Product.id] ||= {
@@ -108,6 +108,7 @@ app.get('/topSellProduct', async (req: Request, res: Response) => {
                 name: line.Product.name,
                 type: line.Product.type,
                 discount: line.discount,
+                cost: line.Product.cost,
                 total: 0
             }
             p[line.Product.id].discount += (line.discount * line.quantity)
