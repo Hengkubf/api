@@ -123,17 +123,13 @@ app.get('/topSellProduct', async (req: Request, res: Response) => {
 
 
 app.get('/recentOrder', async (req: Request, res: Response) => {
-    const result = await prisma.invoice.findMany
+    const result = await prisma.line.findMany
         ({
             orderBy: {
-                Date: 'desc',
+                createdAt: 'desc',
             },
             include: {
-                line: {
-                    include: {
-                        Product: true,
-                    },
-                },
+                Product: true,
             },
             take: 5
         });
@@ -242,6 +238,22 @@ app.post('/updateReturnProduct', async (req: Request, res: Response) => {
     }
 });
 
+interface SaleByQtyGroupBy {
+    barcode: string;
+}
 
+interface SaleByQtyResult {
+    barcode: string;
+    quantity: number;
+    Product: {
+        id: number;
+        barcode: string;
+        type: string;
+        name: string;
+        cost: number;
+        sale: number;
+        quan: number;
+    };
+}
 
 module.exports = app;
