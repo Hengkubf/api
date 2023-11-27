@@ -15,6 +15,7 @@ interface LineData {
         productName: string;
         quantity: number;
         price: number;
+        return: number;
     };
 }
 
@@ -41,6 +42,7 @@ app.post('/invoices', async (req, res) => {
                     cost: productData.product.cost,
                     price: productData.product.price, // ใช้ราคาของสินค้าจากคำขอ
                     employeeId: data.Userid,
+                    return: productData.product.return,
                     discount: parseFloat(productData.product.discount),
                 }
             });
@@ -151,11 +153,12 @@ app.get('/getReturnInvoice/', async (req: Request, res: Response) => {
             where: {
                 inv_id: parseInt(invoice_id),
                 barcode: barcode,
+                return: 1,
             },
         });
 
         if (!results) {
-            res.status(500).json({ status: "Data not Matches" });
+            res.status(500).json({ status: "สินค้าไม่สามารถคืนได้" });
         } else {
             res.status(200).json({ status: "ok", quantity: results.quantity });
         }

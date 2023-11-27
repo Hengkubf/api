@@ -10,8 +10,8 @@ datasource db {
 
 model Employee {
   id      Int       @id @default(autoincrement())
-  fname   String
-  phone   String
+  fname   String    @db.VarChar(50)
+  phone   String    @db.VarChar(15)
   Login   Login[]
   Note    Note[]
   Invoice Invoice[]
@@ -36,10 +36,11 @@ model Product {
   id            Int             @id @default(autoincrement())
   barcode       String          @unique
   type          String
-  name          String
+  name          String          @unique
   cost          Int
   sale          Int
   quan          Int
+  return        Int
   line          line[]
   ReturnProduct ReturnProduct[]
 
@@ -92,6 +93,7 @@ model line {
   price      Float
   discount   Float
   cost       Float
+  return     Int
   createdAt  DateTime @default(now())
   Invoice    Invoice  @relation(fields: [inv_id], references: [id])
   Product    Product  @relation(fields: [barcode], references: [barcode])
