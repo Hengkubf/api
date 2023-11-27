@@ -17,6 +17,6 @@ app.use(require('./Controller/DashboardController'));
 
 
 
-app.listen(process.env.PORT || 3002, () => {
+app.listen(process.env.PORT, () => {
     console.log('Example app listening on port', process.env.PORT);
 })
