@@ -153,17 +153,17 @@ app.get('/getReturnInvoice/', async (req: Request, res: Response) => {
             where: {
                 inv_id: parseInt(invoice_id),
                 barcode: barcode,
-                return: 1,
             },
         });
-
+        if (results?.return === 0) {
+            res.status(201).json({ message: "สินค้าไม่สามารถคืนได้" });
+        }
         if (!results) {
             res.status(500).json({ status: "สินค้าไม่สามารถคืนได้" });
         } else {
             res.status(200).json({ status: "ok", quantity: results.quantity });
         }
     } catch (error) {
-        console.error(error);
         res.status(500).json({ status: "Fail" });
     }
 });

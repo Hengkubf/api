@@ -87,7 +87,6 @@ app.post('/updateemployee', async (req: Request, res: Response) => {
 app.post('/login', async (req: Request, res: Response) => {
     const { csrfToken, username, password } = req.body;
     if (!csrfToken || !username || !password) {
-        console.log(req.body);
         return res.status(400).json({ error: 'Username and password are required' });
     }
     const user = await prisma.login.findUnique({
