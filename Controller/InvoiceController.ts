@@ -265,7 +265,15 @@ app.delete('/DeleteReturn', async (req: Request, res: Response) => {
 });
 
 
+app.get('/getSalebyEmployee', async (req: Request, res: Response) => {
+    const result = await prisma.invoice.groupBy({
+        by: ['employee_id'],
+        _sum: { total: true },
+    });
 
+    res.status(200).json(result);
+
+});
 
 module.exports = app;
 
