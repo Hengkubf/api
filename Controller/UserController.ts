@@ -131,7 +131,7 @@ app.post('/login', async (req: Request, res: Response) => {
 
 
 app.post('/addNotes', (async (req, res) => {
-    const { employee_id, type, value, text,date } = req.body;
+    const { employee_id, type, value, text, date } = req.body;
 
     const newNote = await prisma.note.create({
         data: {
@@ -139,7 +139,7 @@ app.post('/addNotes', (async (req, res) => {
             type: parseInt(type), // แปลงเป็น Int
             value: parseInt(value), // แปลงเป็น Int
             text,
-            Date: date, // เพิ่ม current date
+            Date: new Date(date), // เพิ่ม current date
         },
     });
 
@@ -147,7 +147,7 @@ app.post('/addNotes', (async (req, res) => {
 }));
 
 
-app.get('/getNotes', async (req: Request, res: Response) => {
+app.get('/  ', async (req: Request, res: Response) => {
 
     const results = await prisma.note.findMany({
     });
