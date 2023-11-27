@@ -22,6 +22,7 @@ app.post('/createProduct', async (req: Request, res: Response) => {
                 cost: parseInt(data.cost),
                 sale: parseInt(data.sale),
                 quan: parseInt(data.quan),
+                return: parseInt(data.return),
             },
         });
         res.status(201).json(product);
@@ -147,6 +148,7 @@ app.post('/updateProduct', async (req: Request, res: Response) => {
                 name: data.name,
                 cost: parseInt(data.cost),
                 sale: parseInt(data.sale),
+                return: parseInt(data.return),
                 quan: parseInt(data.quan),
             },
         });
